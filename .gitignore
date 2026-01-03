@@ -8,6 +8,10 @@ node_modules/
 dist/
 web-build/
 
+# Public assets (but keep manifest.json)
+public/*
+!public/manifest.json
+
 # Native
 *.orig.*
 *.jks

@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#EAE5D9"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#EAE5D9"
       },
       "package": "com.theroom.pilates"
     },
@@ -32,7 +32,18 @@
       "display": "standalone",
       "backgroundColor": "#EAE5D9",
       "themeColor": "#EAE5D9",
-      "description": "The Room Pilates Studio App"
+      "description": "The Room Pilates Studio App",
+      "lang": "en",
+      "name": "The Room Pilates",
+      "shortName": "The Room",
+      "scope": "/",
+      "startUrl": "/",
+      "orientation": "portrait",
+      "preferRelatedApplications": false,
+      "apple": {
+        "appleMobileWebAppCapable": "yes",
+        "appleMobileWebAppStatusBarStyle": "black-translucent"
+      }
     },
     "scheme": "theroom",
     "plugins": [
@@ -40,4 +51,3 @@
     ]
   }
 }
-

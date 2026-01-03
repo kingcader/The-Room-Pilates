@@ -16,16 +16,27 @@ export default function HomeScreen() {
 
   const loadData = async () => {
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Auth error:', authError);
+        setLoading(false);
+        return;
+      }
+
       if (authUser) {
-        const { data: userData } = await supabase
+        const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
           .eq('id', authUser.id)
           .single();
-        if (userData) setUser(userData);
+        
+        if (userError) {
+          console.error('Error loading user:', userError);
+        } else if (userData) {
+          setUser(userData);
+        }
 
-        const { data: nextBooking } = await supabase
+        const { data: nextBooking, error: bookingError } = await supabase
           .from('bookings')
           .select(`*, schedule:schedule_id (start_time, instructor_name, classes:class_id (name))`)
           .eq('user_id', authUser.id)
@@ -33,18 +44,24 @@ export default function HomeScreen() {
           .gte('schedule.start_time', new Date().toISOString())
           .order('schedule(start_time)', { ascending: true })
           .limit(1)
-          .single();
-        if (nextBooking) setNextReservation(nextBooking as any);
+          .maybeSingle();
+        
+        if (!bookingError && nextBooking) {
+          setNextReservation(nextBooking as any);
+        }
 
-        const { count } = await supabase
+        const { count, error: countError } = await supabase
           .from('bookings')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', authUser.id)
           .eq('status', 'completed');
-        setClassesCompleted(count || 0);
+        
+        if (!countError) {
+          setClassesCompleted(count || 0);
+        }
       }
     } catch (error) {
-      console.error(error);
+      console.error('Unexpected error:', error);
     } finally {
       setLoading(false);
     }

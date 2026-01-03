@@ -23,9 +23,11 @@ export default function ScheduleScreen() {
 
   const loadUser = async () => {
     try {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Auth error:', authError);
+        return;
+      }
 
       if (authUser) {
         const { data, error } = await supabase
@@ -34,11 +36,14 @@ export default function ScheduleScreen() {
           .eq('id', authUser.id)
           .single();
 
-        if (error) throw error;
-        setUser(data);
+        if (error) {
+          console.error('Error loading user:', error);
+        } else if (data) {
+          setUser(data);
+        }
       }
     } catch (error) {
-      console.error('Error loading user:', error);
+      console.error('Unexpected error loading user:', error);
     }
   };
 

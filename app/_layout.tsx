@@ -72,29 +72,7 @@ export default function RootLayout() {
     };
   }, []);
 
-  useEffect(() => {
-    if (initializing) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, initializing, segments]);
-
-  // Show loading screen while checking auth
-  if (initializing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.black} />
-        <StatusBar style="light" />
-      </View>
-    );
-  }
-
-  // Add PWA meta tags for iOS Safari (hide bottom bar)
+  // Add PWA meta tags for iOS Safari (hide bottom bar) - MUST be before conditional return
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const metaTags = [
@@ -128,6 +106,28 @@ export default function RootLayout() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (initializing) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, initializing, segments]);
+
+  // Show loading screen while checking auth
+  if (initializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.black} />
+        <StatusBar style="light" />
+      </View>
+    );
+  }
 
   return (
     <>

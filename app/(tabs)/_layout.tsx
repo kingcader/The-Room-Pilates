@@ -28,10 +28,19 @@ export default function TabLayout() {
   }, []);
 
   const checkAdmin = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase.from('users').select('is_admin').eq('id', user.id).single();
-      setIsAdmin(data?.is_admin || false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase.from('users').select('is_admin').eq('id', user.id).single();
+        if (error) {
+          console.error('Error checking admin status:', error);
+          return;
+        }
+        console.log('Admin check:', { email: user.email, is_admin: data?.is_admin });
+        setIsAdmin(data?.is_admin || false);
+      }
+    } catch (error) {
+      console.error('Error in checkAdmin:', error);
     }
   };
 

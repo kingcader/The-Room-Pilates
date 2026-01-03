@@ -5,11 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#EAE5D9"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -18,14 +13,9 @@
       "bundleIdentifier": "com.theroom.pilates"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#EAE5D9"
-      },
       "package": "com.theroom.pilates"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "static",
       "display": "standalone",

@@ -1,23 +1,93 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Platform } from 'react-native';
+import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { colors } from '@/lib/theme';
 
 export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [initializing, setInitializing] = useState(true);
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
+    let mounted = true;
+
+    // Check initial session with timeout
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise<{ data: { session: null }, error: null }>((_, reject) =>
+            setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+          ) as any,
+        ]);
+
+        if (!mounted) return;
+
+        if (error) {
+          console.error('Auth error:', error);
+          setIsAuthenticated(false);
+        } else {
+          setIsAuthenticated(!!session);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        if (mounted) setIsAuthenticated(false);
+      } finally {
+        if (mounted) setInitializing(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setIsAuthenticated(!!session);
+        setInitializing(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (initializing) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, initializing, segments]);
+
+  // Show loading screen while checking auth
+  if (initializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.black} />
+        <StatusBar style="light" />
+      </View>
+    );
+  }
+
+  // Add PWA meta tags for iOS Safari (hide bottom bar)
+  useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      // Add PWA meta tags for iOS Safari
       const metaTags = [
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         { name: 'apple-mobile-web-app-title', content: 'The Room' },
         { name: 'mobile-web-app-capable', content: 'yes' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' },
       ];
 
       metaTags.forEach(({ name, content }) => {
@@ -30,7 +100,11 @@ export default function RootLayout() {
         meta.setAttribute('content', content);
       });
 
-      // Add manifest link
+      let viewport = document.querySelector('meta[name="viewport"]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+      }
+
       let manifestLink = document.querySelector('link[rel="manifest"]');
       if (!manifestLink) {
         manifestLink = document.createElement('link');
@@ -39,33 +113,7 @@ export default function RootLayout() {
         document.head.appendChild(manifestLink);
       }
     }
-
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (isAuthenticated === null) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, segments]);
 
   return (
     <>
@@ -82,3 +130,12 @@ export default function RootLayout() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: colors.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

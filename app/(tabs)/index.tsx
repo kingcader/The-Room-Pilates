@@ -11,7 +11,18 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
+    let mounted = true;
+    
+    const load = async () => {
+      await loadData();
+      if (!mounted) return;
+    };
+    
+    load();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const loadData = async () => {

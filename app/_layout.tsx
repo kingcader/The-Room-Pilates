@@ -13,16 +13,23 @@ export default function RootLayout() {
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     // Check initial session with timeout
     const checkAuth = async () => {
       try {
-        const { data: { session }, error } = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise<{ data: { session: null }, error: null }>((_, reject) =>
-            setTimeout(() => reject(new Error('Auth check timeout')), 5000)
-          ) as any,
-        ]);
+        // Set a timeout to prevent infinite loading
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            console.warn('Auth check timeout, defaulting to unauthenticated');
+            setIsAuthenticated(false);
+            setInitializing(false);
+          }
+        }, 3000);
+
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        clearTimeout(timeoutId);
 
         if (!mounted) return;
 
@@ -33,10 +40,16 @@ export default function RootLayout() {
           setIsAuthenticated(!!session);
         }
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error('Auth check failed:', error);
-        if (mounted) setIsAuthenticated(false);
+        if (mounted) {
+          setIsAuthenticated(false);
+          setInitializing(false);
+        }
       } finally {
-        if (mounted) setInitializing(false);
+        if (mounted) {
+          setInitializing(false);
+        }
       }
     };
 
@@ -54,6 +67,7 @@ export default function RootLayout() {
 
     return () => {
       mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);

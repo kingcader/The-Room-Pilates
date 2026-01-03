@@ -7,11 +7,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder';
 
+// Web-compatible storage adapter
+const getStorageAdapter = () => {
+  if (typeof window !== 'undefined') {
+    // Browser environment - use AsyncStorage (which uses localStorage on web)
+    return AsyncStorage;
+  }
+  // Server-side rendering - use a no-op storage
+  return {
+    getItem: async () => null,
+    setItem: async () => {},
+    removeItem: async () => {},
+  };
+};
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: AsyncStorage,
+    storage: getStorageAdapter(),
     autoRefreshToken: true,
-    persistSession: true,
+    persistSession: typeof window !== 'undefined',
     detectSessionInUrl: false,
   },
 });

@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "The Room",
+    "slug": "the-room-pilates",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.theroom.pilates"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "com.theroom.pilates"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "static",
+      "display": "standalone",
+      "backgroundColor": "#EAE5D9",
+      "themeColor": "#EAE5D9",
+      "description": "The Room Pilates Studio App"
+    },
+    "scheme": "theroom",
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
+
